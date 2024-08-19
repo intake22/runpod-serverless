@@ -86,22 +86,27 @@ def transcribe(job):
                 return { "error" : f"Error downloading data from {job['input']['url']}" }
         
         result = transcribe_core(audio_file)
-        return { 'text' : job, 'result' : result }
+        return { 'result' : result }
 
 def transcribe_core(audio_file):
     print('Transcribing...')
 
-    ret = { 'segments' : [] }
+    ret = {'segments': []}
 
-    segs, dummy = model.transcribe(audio_file, language='he', word_timestamps=True)
+    segs, _ = model.transcribe(audio_file)
     for s in segs:
-        words = []
-        for w in s.words:
-            words.append( { 'start' : w.start, 'end' : w.end, 'word' : w.word, 'probability' : w.probability } )
+        seg = {
+            'id': s.id,
+            'seek': s.seek,
+            'start': s.start,
+            'end': s.end,
+            'text': s.text,
+            'avg_logprob': s.avg_logprob,
+            'compression_ratio': s.compression_ratio,
+            'no_speech_prob': s.no_speech_prob
+        }
 
-        seg = { 'id' : s.id, 'seek' : s.seek, 'start' : s.start, 'end' : s.end, 'text' : s.text, 'avg_logprob' : s.avg_logprob, 'compression_ratio' : s.compression_ratio, 'no_speech_prob' : s.no_speech_prob, 'words' : words }
-
-        print(seg)
+        print("seg id:")
         ret['segments'].append(seg)
 
     return ret
