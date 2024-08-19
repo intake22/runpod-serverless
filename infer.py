@@ -3,6 +3,7 @@ import runpod
 import base64
 import faster_whisper
 import tempfile
+import time
 
 import torch
 
@@ -64,6 +65,9 @@ def download_file(url, max_size_bytes, output_filename, api_key=None):
         return False
 
 def transcribe(job):
+        # Start the timer
+    start_time = time.time()
+
     datatype = job['input'].get('type', None)
     if not datatype:
         return { "error" : "datatype field not provided. Should be 'blob' or 'url'." }
@@ -86,6 +90,14 @@ def transcribe(job):
                 return { "error" : f"Error downloading data from {job['input']['url']}" }
         
         result = transcribe_core(audio_file)
+            # Stop the timer
+        end_time = time.time()
+        # Calculate the transcription time
+        transcription_time = end_time - start_time
+
+        # Add the transcription time to the result
+        result['transcription_time'] = transcription_time
+
         return { 'result' : result }
 
 def transcribe_core(audio_file):
